@@ -1,0 +1,72 @@
+install fedora 23 server
+
+dnf groupinstall "Development Tools"
+dnf install ostree
+dnf install ostree docker atomic
+dnf remove atomic
+
+git clone https://github.com/projectatomic/atomic
+
+
+#####
+dnf install python-requests -y
+dnf update -y
+
+dnf install libselinux-python -y
+
+dnf install python-docker-py -y
+dnf install PyYAML -y
+
+wget https://kojipkgs.fedoraproject.org//packages/atomic/1.9/1.git72cdbef.fc24/src/atomic-1.9-1.git72cdbef.fc24.src.rpm
+
+dnf builddep atomic-1.9-1.git72cdbef.fc24.src.rpm -y
+dnf install python-gobject-base -y
+
+dnf install pylint -y
+dnf install golang -y
+dnf install rpm-python -y
+
+## for testing all option
+dnf -y install fpaste
+docker images -a | fpaste
+docker ps -a | fpaste
+
+
+
+# disable selinux there is a bug that is worked on at the moment.
+vi /etc/selinux/config
+
+reboot 
+check with
+/usr/sbin/getenforce
+
+# build the executable
+make install PREFIX=/usrls
+
+# start docker demon
+systemctl start docker
+
+
+# start the example plugin
+atomic --debug scan --scanner example_plugin centos
+
+# if you want output from the container use the --debug option
+atomic --debug scan --scanner blackducksoftware/atomic centos
+
+
+
+#### additional stuff ####
+# to clean mounts
+
+# Unmount any dms from the filesystem
+mount | grep /dev/mapper/docker-253 | cut -f3 --delimiter=" " | xargs -I{} sudo umount {}
+
+# Remove any dms
+dmsetup info | grep docker-253:0 | grep -v pool | awk '{print  $2}' | xargs -I{} sudo dmsetup remove {}
+
+n your json, if you make the following change:
+ put reporturl under a custom key
+ i.e.
+ "Custom": {
+       "Report URL": "https:///...",
+ }
